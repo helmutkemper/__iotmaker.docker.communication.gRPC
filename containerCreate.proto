@@ -1,0 +1,128 @@
+syntax = "proto3";
+
+option go_package = "github.com/helmutkemper/iotmaker_docker_communication_grpc";
+
+package iotmakerDockerCommunicationGrpc;
+
+message typePortBinding {
+  // HostIP is the host IP Address
+  string HostIP = 1;
+  // HostPort is the host port number
+  string HostPort = 2;
+}
+
+enum typeRestartPolicy {
+  //Do not automatically restart the container. (the default)
+  KRestartPolicyNo = 0;
+
+  //Restart the container if it exits due to an error, which manifests as a non-zero exit
+  //code.
+  KRestartPolicyOnFailure = 1;
+
+  //Always restart the container if it stops. If it is manually stopped, it is restarted
+  //only when Docker daemon restarts or the container itself is manually restarted. (See the second bullet listed in restart policy details)
+  KRestartPolicyAlways = 2;
+
+  //Similar to always, except that when the container is stopped (manually or otherwise),
+  //it is not restarted even after Docker daemon restarts.
+  KRestartPolicyUnlessStopped = 3;
+}
+
+enum typeVolumeMountType {
+  // TypeBind is the type for mounting host dir (real folder inside computer where this code work)
+  KVolumeMountTypeBind = 0;
+
+  // TypeVolume is the type for remote storage volumes
+  KVolumeMountTypeVolume = 1;
+
+  // TypeTmpfs is the type for mounting tmpfs
+  KVolumeMountTypeTmpfs = 2;
+
+  // TypeNamedPipe is the type for mounting Windows named pipes
+  KVolumeMountTypeNpipe = 3;
+}
+
+message typeMountMountVolume {
+  typeVolumeMountType type = 1;
+  string Source = 2;
+  string Target = 3;
+
+}
+
+message typeError {
+  bool success = 1;
+  string message = 2;
+  repeated string Trace = 3;
+}
+
+message typePort {
+  string Port = 1;
+  string Proto = 2;
+}
+
+message typeNatPortMap {
+  typePort Port = 1;
+  repeated typePortBinding PortBind = 2;
+}
+
+message containerCreateRequest {
+  string imageName = 1;
+  string containerName = 2;
+  typeRestartPolicy restartPolicy = 3;
+  repeated typeNatPortMap portExposedList = 4;
+  repeated typeMountMountVolume mountVolumes = 5;
+  string containerNetworkId = 6;
+}
+
+message containerCreateAndChangeExposedPortRequest {
+  string imageName = 1;
+  string containerName = 2;
+  typeRestartPolicy restartPolicy = 3;
+  repeated typeMountMountVolume mountVolumes = 4;
+  string containerNetworkId = 5;
+  repeated typePort currentPort = 6;
+  repeated typePort changeToPort = 7;
+}
+
+message containerCreateAndExposePortsAutomaticallyRequest {
+  string imageName = 1;
+  string containerName = 2;
+  typeRestartPolicy restartPolicy = 3;
+  repeated typeMountMountVolume mountVolumes = 4;
+  string containerNetworkId = 5;
+}
+
+message containerCreateWithoutExposePortsRequest {
+  string imageName = 1;
+  string containerName = 2;
+  typeRestartPolicy restartPolicy = 3;
+  repeated typeMountMountVolume mountVolumes = 4;
+  string containerNetworkId = 5;
+}
+
+message containerCreateReply {
+  typeError Error = 1;
+  string ContainerID = 2;
+}
+
+message requestByNameRequest {
+  string name = 1;
+}
+
+message requestByNameReply {
+  typeError Error = 1;
+  string Id = 2;
+}
+
+service Docker {
+  rpc ContainerCreate (containerCreateRequest) returns (containerCreateReply) {}
+  rpc ContainerCreateAndStart (containerCreateRequest) returns (containerCreateReply) {}
+  rpc ContainerCreateAndChangeExposedPort(containerCreateAndChangeExposedPortRequest) returns (containerCreateReply) {}
+  rpc ContainerCreateChangeExposedPortAndStart(containerCreateAndChangeExposedPortRequest) returns (containerCreateReply) {}
+  rpc ContainerCreateAndExposePortsAutomatically(containerCreateAndExposePortsAutomaticallyRequest) returns (containerCreateReply) {}
+  rpc ContainerCreateExposePortsAutomaticallyAndStart(containerCreateAndExposePortsAutomaticallyRequest) returns (containerCreateReply) {}
+  rpc ContainerCreateWithoutExposePorts(containerCreateWithoutExposePortsRequest) returns (containerCreateReply) {}
+  rpc ContainerCreateWithoutExposePortsAndStart(containerCreateWithoutExposePortsRequest) returns (containerCreateReply) {}
+  rpc ContainerFindIdByName(requestByNameRequest) returns (requestByNameReply) {}
+  rpc ContainerFindIdByNameContains(requestByNameRequest) returns (requestByNameReply) {}
+}
