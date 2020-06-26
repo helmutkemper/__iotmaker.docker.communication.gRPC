@@ -109,9 +109,31 @@ message requestByNameRequest {
   string name = 1;
 }
 
+message requestByIdRequest {
+  string id = 1;
+}
+
 message requestByNameReply {
   typeError Error = 1;
   string Id = 2;
+}
+
+message inspectByIdRequest {
+  string id = 1;
+}
+
+message inspectByIdReply {
+  typeError Error = 1;
+  string JSon = 2;
+}
+
+message inspectByNameRequest {
+  string name = 1;
+}
+
+message inspectByNameReply {
+  typeError Error = 1;
+  string JSon = 2;
 }
 
 service Docker {
@@ -125,4 +147,6 @@ service Docker {
   rpc ContainerCreateWithoutExposePortsAndStart(containerCreateWithoutExposePortsRequest) returns (containerCreateReply) {}
   rpc ContainerFindIdByName(requestByNameRequest) returns (requestByNameReply) {}
   rpc ContainerFindIdByNameContains(requestByNameRequest) returns (requestByNameReply) {}
+  rpc ContainerInspectJSon(inspectByIdRequest) returns (inspectByIdReply) {}
+  rpc ContainerInspectJSonByName(inspectByIdRequest) returns (inspectByIdReply) {}
 }

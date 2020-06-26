@@ -1,5 +1,7 @@
 package main
 
+//go:generate protoc --go_opt=paths=source_relative --go_out=plugins=grpc:. *.proto
+
 import (
 	"context"
 	"github.com/docker/go-connections/nat"
@@ -304,6 +306,30 @@ func (s *server) ContainerFindIdByName(
 				Trace:   nil,
 			},
 			Id: ID,
+		},
+		nil
+}
+
+func (s server) ContainerInspectJSon(
+	ctx context.Context,
+	r *pb.InspectByIdRequest,
+) (replay *pb.InspectByIdReply, err error) {
+
+	var data []byte
+	err, data = dockerSys.ContainerInspectJSon(r.Id)
+
+	var errorMessage string
+	if err != nil {
+		errorMessage = err.Error()
+	}
+
+	return &pb.InspectByIdReply{
+			Error: &pb.TypeError{
+				Success: err == nil,
+				Message: errorMessage,
+				Trace:   nil,
+			},
+			JSon: string(data),
 		},
 		nil
 }
